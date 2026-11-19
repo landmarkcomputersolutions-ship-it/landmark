@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#10182d" />
+    <meta name="description" content="Shop computer components, gaming gear and everyday technology essentials at Landmark Computers." />
+    <title>Landmark Computers — Tech, chosen well</title>
+    <link rel="icon" type="image/svg+xml" href="assets/landmark-logo.jpg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&family=Michroma&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+      <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.6"/><path d="m16 16 4.5 4.5"/></symbol>
+      <symbol id="icon-bag" viewBox="0 0 24 24"><path d="M5 8h14l1 12H4L5 8Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></symbol>
+      <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M4 12h15M13 5l7 7-7 7"/></symbol>
+      <symbol id="icon-chip" viewBox="0 0 48 48"><rect x="11" y="11" width="26" height="26" rx="4"/><rect x="17" y="17" width="14" height="14" rx="2"/><path d="M18 5v6m12-6v6M18 37v6m12-6v6M5 18h6m-6 12h6m26-12h6m-6 12h6"/></symbol>
+      <symbol id="icon-display" viewBox="0 0 48 48"><rect x="5" y="7" width="38" height="27" rx="3"/><path d="M18 42h12m-6-8v8"/></symbol>
+      <symbol id="icon-board" viewBox="0 0 48 48"><rect x="8" y="6" width="32" height="36" rx="4"/><rect x="15" y="13" width="12" height="12" rx="2"/><path d="M31 14h4m-4 6h4m-20 12h18M15 36h5"/></symbol>
+      <symbol id="icon-memory" viewBox="0 0 48 48"><rect x="6" y="13" width="36" height="21" rx="3"/><path d="M13 19v9m7-9v9m7-9v9m7-9v9M11 34v5m7-5v5m7-5v5m7-5v5m7-5v5"/></symbol>
+      <symbol id="icon-laptop" viewBox="0 0 48 48"><rect x="9" y="7" width="30" height="24" rx="2"/><path d="m5 38 4-7h30l4 7H5Zm15-3h8"/></symbol>
+      <symbol id="icon-graphics" viewBox="0 0 48 48"><rect x="5" y="13" width="38" height="22" rx="3"/><circle cx="21" cy="24" r="7"/><circle cx="21" cy="24" r="2"/><path d="M34 19h4m-4 5h4m-4 5h4M12 35v4m24-4v4"/></symbol>
+      <symbol id="icon-storage" viewBox="0 0 48 48"><rect x="6" y="9" width="36" height="30" rx="4"/><path d="M12 17h24m-24 7h24m-24 7h14"/><circle cx="36" cy="31" r="1"/></symbol>
+      <symbol id="icon-box" viewBox="0 0 48 48"><path d="m24 5 18 10v18L24 43 6 33V15L24 5Z"/><path d="m6 15 18 10 18-10M24 25v18m-9-33 18 10"/></symbol>
+      <symbol id="icon-cctv" viewBox="0 0 48 48"><path d="M7 17h24l8 7-8 7H7z"/><path d="M13 31v7h14v-7M34 20l7-5m-7 17 7 5"/><circle cx="13" cy="24" r="3"/></symbol>
+      <symbol id="icon-pos" viewBox="0 0 48 48"><rect x="11" y="5" width="26" height="38" rx="4"/><rect x="15" y="10" width="18" height="15" rx="2"/><path d="M17 31h14m-11 5h8"/></symbol>
+    </svg>
+
+    <div class="preview-note"><span class="preview-dot"></span><strong>Preview storefront</strong><span>Sample listings, prices and stock — replace with your shop’s live details before launch.</span></div>
+
+    <header class="site-header">
+      <div class="service-line">
+        <span>Technology for work, play & everything in between</span>
+        <a href="#store-details">Store information <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="masthead page-shell">
+        <a class="wordmark" href="#top" aria-label="Landmark Computers home">
+          <img src="assets/landmark-logo.jpg" width="52" height="52" alt="Landmark Computers logo" />
+          <span>LANDMARK <span>COMPUTERS</span></span>
+        </a>
+        <form class="search-form header-search" id="header-search-form" role="search">
+          <label class="sr-only" for="header-search">Search technology products</label>
+          <input id="header-search" type="search" placeholder="Search components, laptops, gear…" autocomplete="off" />
+          <button class="search-submit" type="submit" aria-label="Search"><svg><use href="#icon-search" /></svg></button>
+        </form>
+        <div class="header-actions">
+          <button class="admin-open" id="admin-open" type="button" hidden>▦ Admin Dashboard</button><button class="admin-open site-editor-open" id="site-editor-open" type="button" hidden>⚙ Edit website</button><button class="admin-open" id="admin-logout" type="button" hidden>Logout</button>
+          <a class="header-link account-link" href="#store-details"><span class="header-link-icon" aria-hidden="true">?</span><span><small>Need a hand?</small><strong>Store info</strong></span></a>
+          <button class="cart-trigger" id="open-cart" type="button" aria-haspopup="dialog" aria-controls="cart-dialog">
+            <span class="cart-trigger-icon"><svg><use href="#icon-bag" /></svg><b id="cart-count">0</b></span>
+            <span class="cart-trigger-copy"><small>Your cart</small><strong id="cart-total-header">LKR 0</strong></span>
+          </button>
+        </div>
+      </div>
+      <nav class="main-nav" aria-label="Main navigation">
+        <div class="page-shell main-nav-inner">
+          <a class="all-products-link" href="#catalog"><span class="menu-glyph" aria-hidden="true">☰</span> Shop all</a>
+          <a href="#categories">PC Build Components
+</a>
+          <a href="#catalog" data-nav-category="graphics">Graphics & gaming</a>
+          <a href="#catalog" data-nav-category="laptops">Laptops</a>
+          <a href="#catalog" data-nav-category="monitors">Monitors</a>
+          <a href="#store-details">About the shop</a>
+          <span class="nav-note">Good gear. Clear specs. No guesswork.</span>
+        </div>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero page-shell" aria-labelledby="hero-title">
+        <img class="hero-art" src="https://images.unsplash.com/photo-1587202372775-e229f172b9d7?auto=format&fit=crop&w=1200&q=85" alt="A carefully built gaming PC and desk setup" />
+        <div class="hero-shade"></div>
+        <div class="hero-content">
+          <span class="eyebrow"><span class="eyebrow-bar"></span> THE TECH EDIT · LANDMARK COMPUTERS</span>
+          <h1 id="hero-title">All the gear<br />for what’s <em>next.</em></h1>
+          <p>Build your setup with components, computers and everyday tech chosen to make sense.</p>
+          <div class="hero-buttons">
+            <a class="button button-red" href="#catalog">Explore the shop <svg><use href="#icon-arrow" /></svg></a>
+            <a class="hero-text-link" href="#categories">Browse categories <span aria-hidden="true">↓</span></a>
+          </div>
+          <div class="hero-caption"><span>01</span><span class="caption-line"></span><span>FIND YOUR NEXT FAVOURITE</span></div>
+        </div>
+        <div class="hero-side-label"><span>TECH</span><span>EDIT</span></div>
+      </section>
+
+
+
+      <section class="category-section page-shell" id="categories" aria-labelledby="category-title">
+        <div class="section-heading section-heading-split">
+          <div><span class="section-kicker">PICK A STARTING POINT</span><h2 id="category-title">Shop by <em>category</em></h2></div>
+          <a class="section-link" href="#catalog">View all products <svg><use href="#icon-arrow" /></svg></a>
+        </div>
+        <div class="category-grid" id="category-grid"></div>
+      </section>
+
+      <section class="category-page page-shell" id="category-page" aria-live="polite" hidden>
+        <button class="category-back" id="category-back" type="button">← Back to all categories</button>
+        <div class="category-page-hero"><span class="section-kicker">LANDMARK COMPUTERS · CATEGORY</span><h1 id="category-page-title">Category</h1><p id="category-page-description">Explore products in this category.</p></div>
+        <div class="category-page-toolbar"><span id="category-page-count"></span><label class="filter-select"><span>Sort by</span><select id="category-page-sort"><option value="featured">Featured</option><option value="price-low">Price: low to high</option><option value="price-high">Price: high to low</option><option value="name">Name: A to Z</option></select></label></div>
+        <div class="product-grid category-page-grid" id="category-page-grid"></div>
+        <div class="empty-state" id="category-page-empty" hidden><span>COMING SOON</span><h3>Products are being added.</h3><p>Contact Landmark Computers for availability in this category.</p></div>
+      </section>
+
+      <section class="feature-shelf page-shell" aria-labelledby="featured-title">
+        <div class="section-heading section-heading-split">
+          <div><span class="section-kicker">THE SHORTLIST</span><h2 id="featured-title">Popular <em>picks</em></h2><p class="section-description">A few good places to start. Product and stock information shown here is demo content.</p></div>
+          <a class="section-link" href="#catalog">See the full catalog <svg><use href="#icon-arrow" /></svg></a>
+        </div>
+        <div class="product-grid featured-grid" id="featured-grid"></div>
+      </section>
+
+      <section class="build-band page-shell" aria-label="Build your setup">
+        <div class="build-band-mark" aria-hidden="true"><svg><use href="#icon-chip" /></svg><span>YOUR<br />SETUP</span></div>
+        <div class="build-band-copy"><span class="section-kicker">START WITH THE RIGHT PARTS</span><h2>Small upgrades.<br /><em>Big difference.</em></h2></div>
+        <p>Whether it’s a faster processor or a fresh display, find the pieces that make your setup feel like yours.</p>
+        <a class="button button-light" href="#catalog">Find your upgrade <svg><use href="#icon-arrow" /></svg></a>
+        <span class="build-band-watermark" aria-hidden="true">LC</span>
+      </section>
+
+      <section class="catalog-section" id="catalog" aria-labelledby="catalog-title">
+        <div class="page-shell">
+          <div class="section-heading catalog-heading">
+            <div><span class="section-kicker">EXPLORE THE LINEUP</span><h2 id="catalog-title">The <em>catalog</em></h2><p class="section-description">Search, compare and find a solid next step for your setup.</p></div>
+            <span class="catalog-count" id="catalog-count" aria-live="polite"></span>
+          </div>
+          <div class="catalog-toolbar">
+            <form class="search-form catalog-search" id="catalog-search-form" role="search">
+              <label class="sr-only" for="catalog-search">Search catalog</label>
+              <svg><use href="#icon-search" /></svg>
+              <input id="catalog-search" type="search" placeholder="Search the catalog…" autocomplete="off" />
+            </form>
+            <label class="filter-select"><span>Category</span><select id="category-filter"><option value="all">All categories</option></select></label>
+            <label class="filter-select"><span>Brand</span><select id="brand-filter"><option value="all">All brands</option></select></label>
+            <label class="filter-select"><span>Availability</span><select id="stock-filter"><option value="all">Any availability</option><option value="in">In stock</option><option value="out">Out of stock</option></select></label>
+            <label class="filter-select sort-select"><span>Sort by</span><select id="sort-filter"><option value="featured">Featured</option><option value="price-low">Price: low to high</option><option value="price-high">Price: high to low</option><option value="name">Name: A to Z</option></select></label>
+            <label class="price-filter"><span>Max price <strong id="price-output">LKR 500,000</strong></span><input id="price-filter" type="range" min="0" max="500000" step="5000" value="500000" /></label>
+            <button class="clear-filters" id="clear-filters" type="button">Clear filters</button>
+          </div>
+          <p class="catalog-disclaimer"><span aria-hidden="true">ⓘ</span> Preview catalog: prices, availability and product selection are examples, not a live inventory feed.</p>
+          <div class="product-grid catalog-grid" id="catalog-grid" aria-live="polite"></div>
+          <div class="empty-state" id="empty-state" hidden><span>NO MATCHES</span><h3>Nothing in this aisle just yet.</h3><p>Try another search or clear a filter to see more of the sample catalog.</p><button class="button button-dark" id="empty-reset" type="button">Clear filters</button></div>
+        </div>
+      </section>
+
+      <section class="repairs-section page-shell" id="repairs" aria-labelledby="repairs-title">
+        <div class="section-heading"><span class="section-kicker">LANDMARK SERVICE CENTRE</span><h2 id="repairs-title">Repairs & <em>services</em></h2><p class="section-description">Computer, laptop and CCTV diagnostics, repairs and installation support.</p></div>
+        <div class="repair-service-grid"><article><b>Computer & Laptop Repairs</b><p>Hardware upgrades, Windows/software support, troubleshooting and maintenance.</p></article><article><b>CCTV Repairs & Installation</b><p>Camera, DVR/NVR, cabling, configuration and security system support.</p></article><article><b>POS Systems</b><p>POS setup, printer, barcode scanner and cash drawer assistance.</p></article></div>
+        <form id="repair-request-form" class="repair-request"><h3>Request a repair</h3><div class="editor-two"><label>Your name<input name="name" required></label><label>Phone / WhatsApp<input name="phone" required></label></div><div class="editor-two"><label>Service<select name="service"><option>Computer / Laptop Repair</option><option>CCTV Repair / Installation</option><option>POS System Support</option></select></label><label>Device / Model<input name="device" placeholder="Device model"></label></div><label>Problem description<textarea name="message" rows="3" required></textarea></label><button class="button button-dark" type="submit">Send repair request via WhatsApp</button></form>
+      </section>
+
+      <section class="store-details page-shell" id="store-details" aria-labelledby="store-title">
+        <div class="store-intro"><span class="section-kicker">BEFORE YOU GO LIVE</span><h2 id="store-title">Make this shop <em>yours.</em></h2><p>Update these details with your real business information before publishing. This draft is not connected to a live store or support desk yet.</p></div>
+        <div class="store-detail-grid" id="store-detail-grid"></div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="page-shell footer-main">
+        <div class="footer-brand"><a class="wordmark" href="#top" aria-label="Landmark Computers home"><img src="assets/landmark-logo.jpg" width="52" height="52" alt="Landmark Computers logo" /><span>LANDMARK <span>COMPUTERS</span></span></a><p>Good gear. Clear specs. No guesswork.</p><small>A customizable sample storefront.</small></div>
+        <div class="footer-column"><h2>Browse</h2><a href="#categories">Shop by category</a><a href="#catalog">All products</a><a href="#featured-title">Popular picks</a></div>
+        <div class="footer-column"><h2>Customer care</h2><a href="#store-details">Store information</a><a href="#store-details">Delivery & returns</a><a href="#store-details">Contact & support</a></div>
+        <div class="footer-column footer-message-column"><h2>Send Message</h2><p>Have a question? Send our team a message directly from this website.</p><button type="button" class="footer-message-button" data-open-message>Send Message <span aria-hidden="true">›</span></button><small>Mon - Fri: 9AM - 8PM</small></div>
+        <div class="footer-callout"><span class="footer-callout-mark">LC<span>®</span></span><p>Technology shopping,<br />made a little clearer.</p><a href="#top">Back to top ↑</a></div>
+      </div>
+      <div class="footer-bottom"><div class="page-shell"><span>© <span id="year">2026</span> Landmark Computers — sample storefront</span><span>Prices, product details & store information are editable demo content.</span></div></div>
+    </footer>
+
+    <dialog class="admin-dialog" id="admin-dialog" aria-labelledby="admin-title">
+      <div class="drawer-head"><div><span class="section-kicker">LANDMARK STORE MANAGER</span><h2 id="admin-title">Product <em>editor</em></h2></div><button class="icon-button close-dialog" type="button" data-close-dialog aria-label="Close manager">×</button></div>
+      <p class="drawer-note">Add or edit products, upload photos and update prices. Changes are saved in this browser.</p>
+      <div class="admin-layout"><aside class="admin-list"><h3>Your products</h3><div id="admin-product-list"></div></aside>
+      <form id="product-editor-form" class="product-editor-form"><div class="editor-title"><h3 id="editor-heading">Add a product</h3><div><button id="editor-delete" type="button" class="editor-reset" hidden>Delete</button> <button id="editor-reset" type="button" class="editor-reset">＋ New</button></div></div>
+        <input type="hidden" id="editor-id"><input type="hidden" id="editor-image-data">
+        <label class="editor-photo" for="editor-image"><span id="editor-image-preview"><span>Choose product photo</span></span><b>Upload / Change photo</b><input id="editor-image" type="file" accept="image/*"></label>
+        <label>Product name<input id="editor-name" required placeholder="e.g. ASUS VivoBook 15"></label>
+        <div class="editor-two"><label>Brand<input id="editor-brand" required placeholder="ASUS"></label><label>Category<select id="editor-category"><option value="processors">Processors</option><option value="graphics">Graphics cards</option><option value="motherboards">Motherboards</option><option value="memory">Memory</option><option value="laptops">Laptops</option><option value="monitors">Monitors</option><option value="storage">Storage</option><option value="accessories">Accessories</option><option value="cctv">CCTV</option><option value="pos-systems">POS SYSTEMS</option></select></label></div>
+        <div class="editor-two"><label>Selling price (LKR)<input id="editor-price" type="number" min="1" required placeholder="189900"></label><label>Old price (optional)<input id="editor-old-price" type="number" min="0" placeholder="219900"></label></div>
+        <label>Description<textarea id="editor-description" rows="3" placeholder="Product details..."></textarea></label>
+        <div class="editor-two"><label>Stock quantity<input id="editor-quantity" type="number" min="0" step="1" value="1"></label><label class="editor-check-label"><input id="editor-stock" type="checkbox" checked> In stock</label></div><div class="editor-checks"><label><input id="editor-featured" type="checkbox"> Featured product</label></div>
+        <button class="button button-green editor-save" type="submit">Save product</button>
+      </form></div>
+    </dialog>
+
+    <dialog class="admin-dialog site-editor-dialog" id="site-editor-dialog" aria-labelledby="site-editor-title">
+      <div class="drawer-head"><div><span class="section-kicker">LANDMARK STORE CUSTOMIZER</span><h2 id="site-editor-title">Edit <em>website</em></h2></div><button class="icon-button close-dialog" type="button" data-close-dialog aria-label="Close editor">×</button></div>
+      <p class="drawer-note">Change the storefront without editing code. Save applies your changes in this browser.</p>
+      <form id="site-editor-form" class="site-editor-form">
+        <h3>Hero banner</h3>
+        <label>Main heading<input id="site-hero-title" value="All the gear for what’s next."></label>
+        <label>Short description<textarea id="site-hero-copy" rows="2"></textarea></label>
+        <label>Banner image URL<input id="site-hero-image" type="url" placeholder="https://example.com/banner.jpg"></label><label>Online payment checkout URL (provider link)<input id="site-payment-url" type="url" placeholder="https://your-payment-provider/checkout"></label>
+        <div class="editor-two"><label>Blue colour<input id="site-blue" type="color" value="#3478e8"></label><label>Highlight colour<input id="site-accent" type="color" value="#75aaff"></label></div>
+        <label>Website background colour<input id="site-background" type="color" value="#080d19"></label>
+        <h3>Category names & images</h3><div id="site-category-editor" class="site-category-editor"></div>
+        <h3>Store information cards</h3><p class="drawer-note">Edit the three default cards or add your own cards.</p><div id="site-detail-card-editor" class="site-detail-card-editor"></div><button type="button" class="button button-light" id="site-add-detail-card">＋ Add another card</button>
+        <h3>Show / hide sections</h3><div class="site-section-toggles"><label><input type="checkbox" id="site-show-categories" checked> Categories</label><label><input type="checkbox" id="site-show-featured" checked> Popular picks</label><label><input type="checkbox" id="site-show-build" checked> Build your setup</label><label><input type="checkbox" id="site-show-catalog" checked> Product catalog</label><label><input type="checkbox" id="site-show-details" checked> Store details</label></div>
+        <div class="site-editor-actions"><button type="button" class="button button-light" id="site-editor-reset">Reset defaults</button><button type="submit" class="button button-dark">Save website changes</button></div>
+      </form>
+    </dialog>
+
+    <dialog class="drawer-dialog" id="cart-dialog" aria-labelledby="cart-title">
+      <div class="drawer-head"><div><span class="section-kicker">YOUR SELECTION</span><h2 id="cart-title">Shopping <em>cart</em></h2></div><button class="icon-button close-dialog" type="button" data-close-dialog aria-label="Close cart">×</button></div>
+      <p class="drawer-note">Ready to order? Send your selected products directly to Landmark Computers on WhatsApp.</p>
+      <div class="cart-lines" id="cart-lines"></div>
+      <div class="cart-empty" id="cart-empty"><span class="cart-empty-icon"><svg><use href="#icon-bag" /></svg></span><h3>Your cart is ready for a first pick.</h3><p>Explore the catalog and add something you like.</p><button type="button" class="button button-dark" data-close-dialog>Browse the shop</button></div>
+      <div class="drawer-foot" id="cart-footer"><div class="subtotal-line"><span>Subtotal</span><strong id="cart-subtotal">LKR 0</strong></div><p>Send your cart and order total to our WhatsApp team to confirm availability.</p><button class="button button-green checkout-button" id="checkout-button" type="button">Order via WhatsApp <svg><use href="#icon-arrow" /></svg></button><button class="button button-light" id="online-payment-button" type="button">Pay online (when configured)</button><button class="continue-shopping" type="button" data-close-dialog>Continue shopping</button></div>
+    </dialog>
+
+    <dialog class="product-dialog" id="product-dialog" aria-labelledby="product-dialog-title">
+      <button class="icon-button modal-close" type="button" data-close-dialog aria-label="Close product details">×</button>
+      <div class="product-detail-content" id="product-detail-content"></div>
+    </dialog>
+
+    <dialog class="checkout-dialog" id="checkout-dialog" aria-labelledby="checkout-title">
+      <button class="icon-button modal-close" type="button" data-close-dialog aria-label="Close checkout information">×</button>
+      <div class="checkout-icon"><svg><use href="#icon-bag" /></svg></div>
+      <span class="section-kicker">LANDMARK COMPUTERS · WHATSAPP ORDERS</span>
+      <h2 id="checkout-title">Order with <em>confidence.</em></h2>
+      <p>Your order request will open in WhatsApp to <strong>+94 76 799 5022</strong>. Review the product list and send the message to confirm your order.</p>
+      <div class="checkout-security-note"><span aria-hidden="true">✓</span> No payment is taken on this website. Landmark Computers will confirm availability and delivery details with you.</div>
+      <button class="button button-dark checkout-dismiss" type="button" data-close-dialog>Back to the storefront</button>
+    </dialog>
+
+    <dialog class="drawer-dialog" id="customer-message-dialog" aria-labelledby="customer-message-title"><div class="drawer-head"><div><span class="section-kicker">LANDMARK COMPUTERS</span><h2 id="customer-message-title">Send us a <em>message</em></h2></div><button class="icon-button close-dialog" type="button" data-close-dialog aria-label="Close">×</button></div><p class="drawer-note">Send your question directly through this website. Our team will get back to you.</p><form id="customer-message-form" class="site-editor-form"><label>Your name<input name="name" required maxlength="100"></label><label>Email or phone number<input name="contact" required maxlength="120"></label><label>Subject<input name="subject" required maxlength="150"></label><label>Message<textarea name="message" rows="5" required maxlength="3000"></textarea></label><button class="button button-dark" type="submit">Send message</button></form></dialog>
+    <dialog class="admin-dialog" id="admin-login-dialog"><div class="drawer-head"><div><span class="section-kicker">SECURE AREA</span><h2>Admin <em>login</em></h2></div><button class="icon-button close-dialog" type="button" data-close-dialog>×</button></div><form id="admin-login-form" class="site-editor-form"><label>Username<input id="admin-username" autocomplete="username" required></label><label>Password<input id="admin-password" type="password" autocomplete="current-password" required></label><p class="drawer-note">Private admin access. Press Alt + Shift + L to open this panel. This browser-only demo gate is not production security.</p><button class="button button-dark" type="submit">Login</button><p id="admin-login-error" role="alert"></p></form></dialog>
+    <dialog class="admin-dialog" id="admin-dashboard-dialog"><div class="drawer-head"><div><span class="section-kicker">LANDMARK MANAGEMENT</span><h2>Admin <em>dashboard</em></h2></div><button class="icon-button close-dialog" type="button" data-close-dialog>×</button></div><div class="admin-dashboard-content"><div class="admin-dashboard-actions"><button type="button" data-admin-view="orders">Orders</button><button type="button" data-admin-view="stock">Stock</button><button type="button" data-admin-view="repairs">Repair requests</button><button type="button" data-admin-view="messages">Customer messages</button><button type="button" id="dashboard-manage-products">Manage products</button><button type="button" id="dashboard-edit-site">Website editor</button></div><div id="admin-dashboard-view"></div></div></dialog>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
