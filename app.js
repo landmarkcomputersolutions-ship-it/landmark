@@ -70,11 +70,17 @@ let PRODUCTS = [
 ];
 
 const PRODUCT_KEY = 'landmark-products-v1';
-try { const savedProducts = JSON.parse(localStorage.getItem(PRODUCT_KEY) || 'null'); if (Array.isArray(savedProducts) && savedProducts.length) PRODUCTS = savedProducts; } catch {}
+let hasLocalProductCache = false;
+try { const savedProducts = JSON.parse(localStorage.getItem(PRODUCT_KEY) || 'null'); if (Array.isArray(savedProducts) && savedProducts.length) { PRODUCTS = savedProducts; hasLocalProductCache = true; } } catch {}
+const SUPABASE_URL = 'https://sokwaldxxokwbsdgrxmh.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_TTPKDOROLdtwCpqXi83l_A_K35lwkH8';
+const supabaseClient = window.supabase?.createClient
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
+  : null;
 const CART_KEY = 'shopfront-cart-v1';
 const ORDERS_KEY='landmark-orders-v1', REPAIRS_KEY='landmark-repairs-v1', MESSAGES_KEY='landmark-customer-messages-v1';
 const readStore=(k)=>{try{return JSON.parse(localStorage.getItem(k)||'[]')}catch{return []}};
-let ORDERS=readStore(ORDERS_KEY), REPAIR_REQUESTS=readStore(REPAIRS_KEY), CUSTOMER_MESSAGES=readStore(MESSAGES_KEY), isAdmin=sessionStorage.getItem('landmark-admin-session')==='yes';
+let ORDERS=readStore(ORDERS_KEY), REPAIR_REQUESTS=readStore(REPAIRS_KEY), CUSTOMER_MESSAGES=readStore(MESSAGES_KEY), isAdmin=false;
 const WHATSAPP_NUMBER = '94767995022';
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
@@ -495,20 +501,89 @@ function bindEvents() {
   $('#product-editor-form').addEventListener('submit', saveProductForm);
   $('#editor-image').addEventListener('change', previewEditorImage);
   $('#editor-reset').addEventListener('click', () => resetEditor());
-  $('#editor-delete').addEventListener('click',()=>{const id=$('#editor-id').value;if(!id||!confirm('Delete this product?'))return;PRODUCTS=PRODUCTS.filter(p=>p.id!==id);saveProducts();renderAdminList();renderCategories();renderFeatured();renderCatalog();renderCart();resetEditor();showToast('Product deleted');});
+  $('#editor-delete').addEventListener('click',async()=>{const id=$('#editor-id').value;if(!id||!confirm('Delete this product?'))return;try{await deleteProductFromCloud(id);PRODUCTS=PRODUCTS.filter(p=>p.id!==id);saveProducts();renderAdminList();renderCategories();renderFeatured();renderCatalog();renderCart();resetEditor();showToast('Product deleted from the shared catalogue');}catch(error){console.error(error);showToast(error.message||'Could not delete product online.');}});
   $('#admin-product-list').addEventListener('click', (event) => {
     const button = event.target.closest('[data-edit-product]'); if (!button) return;
     const product = byId.get(button.dataset.editProduct); if (product) fillEditor(product);
   });
 }
 
-function saveProducts() { localStorage.setItem(PRODUCT_KEY, JSON.stringify(PRODUCTS)); byId = new Map(PRODUCTS.map(p => [p.id,p])); }
+function saveProducts() {
+  try { localStorage.setItem(PRODUCT_KEY, JSON.stringify(PRODUCTS)); hasLocalProductCache = true; } catch {}
+  byId = new Map(PRODUCTS.map(p => [p.id,p]));
+}
+async function uploadProductImageIfNeeded(image, productId) {
+  if (!image || !image.startsWith('data:')) return image || '';
+  if (!supabaseClient) throw new Error('Cloud connection is unavailable.');
+  const response = await fetch(image);
+  const blob = await response.blob();
+  const extension = (blob.type.split('/')[1] || 'jpg').replace('jpeg','jpg').replace(/[^a-z0-9]/gi,'');
+  const path = `${productId}/${Date.now()}.${extension}`;
+  const { error } = await supabaseClient.storage.from('product-images').upload(path, blob, { upsert: true, contentType: blob.type || 'image/jpeg' });
+  if (error) throw error;
+  const { data } = supabaseClient.storage.from('product-images').getPublicUrl(path);
+  return data.publicUrl;
+}
+async function saveProductToCloud(product) {
+  if (!supabaseClient) throw new Error('Supabase client did not load.');
+  const { error } = await supabaseClient.from('products').upsert({
+    id: product.id, data: product, updated_at: new Date().toISOString()
+  }, { onConflict: 'id' });
+  if (error) throw error;
+}
+async function deleteProductFromCloud(id) {
+  if (!supabaseClient) throw new Error('Supabase client did not load.');
+  const { error } = await supabaseClient.from('products').delete().eq('id', id);
+  if (error) throw error;
+}
+async function loadCloudProducts() {
+  if (!supabaseClient) { showToast('Cloud service did not load.'); return; }
+  const { data, error } = await supabaseClient.from('products').select('id,data').order('updated_at', { ascending: true });
+  if (error) { console.error('Supabase product load failed:', error); showToast('Could not load shared products.'); return; }
+  if (data && data.length) {
+    PRODUCTS = data.map(row => row.data).filter(p => p && p.id);
+    saveProducts();
+  } else if (hasLocalProductCache && isAdmin) {
+    // First-device migration: copy this browser's existing catalogue into the shared database.
+    for (const product of PRODUCTS) await saveProductToCloud(product);
+  }
+  byId = new Map(PRODUCTS.map(p => [p.id,p]));
+}
+async function restoreAdminSession() {
+  if (!supabaseClient) return;
+  const { data, error } = await supabaseClient.auth.getSession();
+  if (error) console.warn('Could not restore admin session:', error);
+  isAdmin = !!data?.session;
+  updateAdminVisibility();
+  supabaseClient.auth.onAuthStateChange((_event, session) => {
+    isAdmin = !!session;
+    updateAdminVisibility();
+  });
+}
 function openAdmin() { if(!isAdmin){$('#admin-login-dialog').showModal();return;} renderAdminList(); resetEditor(); $('#admin-dialog').showModal(); }
 function renderAdminList() { $('#admin-product-list').innerHTML = PRODUCTS.map(p => `<button type="button" class="admin-product-row" data-edit-product="${p.id}"><span>${p.image ? `<img src="${p.image}" alt=""/>` : '▣'}</span><b>${p.name}</b><strong>${money(p.price)}</strong><small>Edit</small></button>`).join(''); }
 function resetEditor() { $('#editor-id').value=''; $('#editor-name').value=''; $('#editor-brand').value=''; $('#editor-category').value='processors'; $('#editor-price').value=''; $('#editor-old-price').value=''; $('#editor-stock').checked=true; $('#editor-quantity').value=1; $('#editor-featured').checked=false; $('#editor-description').value=''; $('#editor-image').value=''; $('#editor-image-data').value=''; $('#editor-image-preview').innerHTML='<span>Choose product photo</span>'; $('#editor-heading').textContent='Add a product'; $('#editor-delete').hidden=true; }
 function fillEditor(p) { $('#editor-id').value=p.id; $('#editor-name').value=p.name; $('#editor-brand').value=p.brand; $('#editor-category').value=p.category; $('#editor-price').value=p.price; $('#editor-old-price').value=p.previousPrice||''; $('#editor-stock').checked=!!p.inStock; $('#editor-quantity').value=Number(p.stockQty??(p.inStock?1:0)); $('#editor-featured').checked=!!p.featured; $('#editor-description').value=p.description||''; $('#editor-image-data').value=p.image||''; $('#editor-image-preview').innerHTML=p.image?`<img src="${p.image}" alt="Preview"/>`:'<span>Choose product photo</span>'; $('#editor-heading').textContent='Edit product'; $('#editor-delete').hidden=false; }
 function previewEditorImage(e) { const file=e.target.files?.[0]; if(!file)return; if(!file.type.startsWith('image/')) { showToast('Please choose an image file'); return; } const reader=new FileReader(); reader.onload=()=>{ $('#editor-image-data').value=reader.result; $('#editor-image-preview').innerHTML=`<img src="${reader.result}" alt="Preview"/>`; }; reader.readAsDataURL(file); }
-function saveProductForm(e) { e.preventDefault(); const id=$('#editor-id').value || $('#editor-name').value.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+Date.now().toString(36); const existing=byId.get($('#editor-id').value); const product={...(existing||{}),id,name:$('#editor-name').value.trim(),brand:$('#editor-brand').value.trim(),category:$('#editor-category').value,price:Number($('#editor-price').value),previousPrice:Number($('#editor-old-price').value)||0,inStock:$('#editor-stock').checked && Number($('#editor-quantity').value)>0,stockQty:Math.max(0,Number($('#editor-quantity').value)||0),featured:$('#editor-featured').checked,image:$('#editor-image-data').value,description:$('#editor-description').value.trim(),short:existing?.short||'Available at Landmark Computers',badge:existing?.badge||'New arrival',specs:existing?.specs||[]}; if(!product.name||!product.brand||!Number.isFinite(product.price)||product.price<=0){showToast('Enter product name, brand and valid price');return;} if(existing) PRODUCTS=PRODUCTS.map(p=>p.id===id?product:p); else PRODUCTS.unshift(product); try { saveProducts(); } catch { showToast('Image is too large. Try a smaller photo.'); return; } renderCategories(); renderAdminList(); renderFeatured(); renderCatalog(); renderCart(); fillEditor(product); showToast('Product saved successfully'); }
+async function saveProductForm(e) {
+  e.preventDefault();
+  if (!isAdmin || !supabaseClient) { showToast('Please sign in to the online admin first.'); return; }
+  const id = $('#editor-id').value || $('#editor-name').value.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+Date.now().toString(36);
+  const existing = byId.get($('#editor-id').value);
+  const product = { ...(existing||{}), id, name:$('#editor-name').value.trim(), brand:$('#editor-brand').value.trim(), category:$('#editor-category').value, price:Number($('#editor-price').value), previousPrice:Number($('#editor-old-price').value)||0, inStock:$('#editor-stock').checked && Number($('#editor-quantity').value)>0, stockQty:Math.max(0,Number($('#editor-quantity').value)||0), featured:$('#editor-featured').checked, image:$('#editor-image-data').value, description:$('#editor-description').value.trim(), short:existing?.short||'Available at Landmark Computers', badge:existing?.badge||'New arrival', specs:existing?.specs||[] };
+  if (!product.name || !product.brand || !Number.isFinite(product.price) || product.price <= 0) { showToast('Enter product name, brand and valid price'); return; }
+  const saveButton = $('.editor-save'); saveButton.disabled = true; saveButton.textContent = 'Saving online…';
+  try {
+    product.image = await uploadProductImageIfNeeded(product.image, product.id);
+    await saveProductToCloud(product);
+    if (existing) PRODUCTS = PRODUCTS.map(p => p.id === id ? product : p); else PRODUCTS.unshift(product);
+    saveProducts(); renderCategories(); renderAdminList(); renderFeatured(); renderCatalog(); renderCart(); fillEditor(product);
+    showToast('Product saved and synced to all devices');
+  } catch (error) {
+    console.error('Product cloud save failed:', error);
+    showToast(error.message || 'Could not save product online. Please try again.');
+  } finally { saveButton.disabled = false; saveButton.textContent = 'Save product'; }
+}
 
 function updateAdminVisibility(){ $('#admin-open').hidden=!isAdmin; $('#site-editor-open').hidden=!isAdmin; $('#admin-logout').hidden=!isAdmin; }
 function showAdminView(view='orders'){
@@ -523,8 +598,8 @@ function bindNewAdminFeatures(){
  updateAdminVisibility();
  // Private admin entry: Alt + Shift + L. No logo tapping or visible customer-facing admin link.
  window.addEventListener('keydown',e=>{if(e.altKey&&e.shiftKey&&!e.ctrlKey&&e.key.toLowerCase()==='l'){e.preventDefault();if(isAdmin){showAdminView('orders');$('#admin-dashboard-dialog').showModal();}else $('#admin-login-dialog').showModal();}},true);
- $('#admin-login-form').addEventListener('submit',e=>{e.preventDefault();const u=$('#admin-username').value.trim(),pw=$('#admin-password').value;if(u==='admin'&&pw==='Landmark@2026'){isAdmin=true;sessionStorage.setItem('landmark-admin-session','yes');$('#admin-login-error').textContent='';closeDialog($('#admin-login-dialog'));updateAdminVisibility();showAdminView('orders');$('#admin-dashboard-dialog').showModal();showToast('Admin signed in');}else $('#admin-login-error').textContent='Incorrect username or password.';});
- $('#admin-logout').addEventListener('click',()=>{isAdmin=false;sessionStorage.removeItem('landmark-admin-session');updateAdminVisibility();showToast('Logged out');});
+ $('#admin-login-form').addEventListener('submit',async e=>{e.preventDefault();const email=$('#admin-username').value.trim(),password=$('#admin-password').value;const button=e.currentTarget.querySelector('button[type="submit"]');button.disabled=true;button.textContent='Signing in…';try{if(!supabaseClient)throw new Error('Cloud login is unavailable. Refresh the page and try again.');const {error}=await supabaseClient.auth.signInWithPassword({email,password});if(error)throw error;isAdmin=true;$('#admin-login-error').textContent='';closeDialog($('#admin-login-dialog'));updateAdminVisibility();await loadCloudProducts();renderInitialApp();showAdminView('orders');$('#admin-dashboard-dialog').showModal();showToast('Admin signed in securely');}catch(error){$('#admin-login-error').textContent=error.message||'Email or password is incorrect.';}finally{button.disabled=false;button.textContent='Login';}});
+ $('#admin-logout').addEventListener('click',async()=>{if(supabaseClient)await supabaseClient.auth.signOut();isAdmin=false;updateAdminVisibility();showToast('Logged out');});
  $('#admin-open').addEventListener('click',()=>{if(!isAdmin)return;showAdminView('orders');$('#admin-dashboard-dialog').showModal();});
  $$('[data-admin-view]').forEach(b=>b.addEventListener('click',()=>showAdminView(b.dataset.adminView)));
  $('#dashboard-manage-products').addEventListener('click',()=>{closeDialog($('#admin-dashboard-dialog'));openAdmin();});
@@ -533,11 +608,19 @@ function bindNewAdminFeatures(){
  $('#repair-request-form').addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.currentTarget),r={name:f.get('name'),phone:f.get('phone'),service:f.get('service'),device:f.get('device'),message:f.get('message'),date:new Date().toISOString()};REPAIR_REQUESTS.unshift(r);try{localStorage.setItem(REPAIRS_KEY,JSON.stringify(REPAIR_REQUESTS));}catch{}const msg=`Hello Landmark Computers, I need a repair/service.\nName: ${r.name}\nPhone: ${r.phone}\nService: ${r.service}\nDevice: ${r.device}\nIssue: ${r.message}`;window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`,'_blank','noopener,noreferrer');e.currentTarget.reset();showToast('Repair request prepared for WhatsApp');});
 }
 
-applySiteSettings();
-renderCategories();
-renderFeatured();
-renderCatalog();
-renderCart();
-const initialCategory=location.hash.match(/^#category\/(.+)$/); if(initialCategory){const id=decodeURIComponent(initialCategory[1]);if(CATEGORIES.some(c=>c.id===id)){activeCategory=id;$('#category-page').hidden=false;document.body.classList.add('category-page-active');$('#category-page-title').textContent=categoryLabel(id);renderCategoryPage();}}
+function renderInitialApp() {
+  applySiteSettings();
+  renderCategories();
+  renderFeatured();
+  renderCatalog();
+  renderCart();
+  const initialCategory=location.hash.match(/^#category\/(.+)$/);
+  if(initialCategory){const id=decodeURIComponent(initialCategory[1]);if(CATEGORIES.some(c=>c.id===id)){activeCategory=id;$('#category-page').hidden=false;document.body.classList.add('category-page-active');$('#category-page-title').textContent=categoryLabel(id);renderCategoryPage();}}
+}
 bindEvents();
 bindNewAdminFeatures();
+(async () => {
+  await restoreAdminSession();
+  await loadCloudProducts();
+  renderInitialApp();
+})();
