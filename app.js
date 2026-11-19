@@ -406,7 +406,7 @@ function renderCategoryEditor() {
     <div class="site-category-row" data-category-row="${htmlSafe(c.id)}">
       <b>${htmlSafe(c.label)}</b>
       <label>Category name<input data-cat-label="${htmlSafe(c.id)}" value="${htmlSafe(cfg.label||c.label)}"></label>
-      <label>Category image URL<input data-cat-photo="${htmlSafe(c.id)}" type="url" value="${htmlSafe(cfg.photo||CATEGORY_PHOTOS[c.id]||'')}" placeholder="https://..."></label>
+      <label>Category image URL<input data-cat-photo="${htmlSafe(c.id)}" type="text" value="${htmlSafe(cfg.photo||CATEGORY_PHOTOS[c.id]||'')}" placeholder="https://..."></label>
       <label>Upload / change image<input data-cat-image-file="${htmlSafe(c.id)}" type="file" accept="image/*"></label>
       <button type="button" class="editor-reset" data-delete-category="${htmlSafe(c.id)}">Delete category</button>
     </div>`;
