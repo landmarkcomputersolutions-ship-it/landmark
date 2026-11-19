@@ -1,4 +1,4 @@
-const CATEGORIES = [
+let CATEGORIES = [
   { id: 'processors', label: 'Processors', icon: 'icon-chip' },
   { id: 'graphics', label: 'Graphics cards', icon: 'icon-graphics' },
   { id: 'motherboards', label: 'Motherboards', icon: 'icon-board' },
@@ -125,7 +125,8 @@ function renderCategories() {
       <span class="category-tile-copy"><span class="category-index">0${index + 1} / CATEGORY</span><strong>${category.label}</strong><span class="category-shop">SHOP NOW <b>↗</b></span></span>
       <span class="category-tile-art">${categoryIcon(category.id)}</span>
     </button>`).join('');
-  $('#category-filter').innerHTML = '<option value="all">All categories</option>' + CATEGORIES.map((category) => `<option value="${category.id}">${category.label}</option>`).join('');
+  $('#category-filter').innerHTML = '<option value="all">All categories</option>' + CATEGORIES.map((category) => `<option value="${category.id}">${htmlSafe(category.label)}</option>`).join('');
+  const productCategory=$('#editor-category'); if(productCategory){const current=productCategory.value;productCategory.innerHTML=CATEGORIES.map(c=>`<option value="${htmlSafe(c.id)}">${htmlSafe(c.label)}</option>`).join('');if(CATEGORIES.some(c=>c.id===current))productCategory.value=current;}
   const brands = [...new Set(PRODUCTS.map((product) => product.brand))].sort((a, b) => a.localeCompare(b));
   $('#brand-filter').innerHTML = '<option value="all">All brands</option>' + brands.map((brand) => `<option value="${brand}">${brand}</option>`).join('');
 }
@@ -365,6 +366,7 @@ function syncSearch(source, destination) {
 
 const BASE_CATEGORY_LABELS = Object.fromEntries(CATEGORIES.map(c=>[c.id,c.label]));
 const SITE_KEY = 'landmark-site-settings-v1';
+const CLOUD_SITE_ROW_ID = '__landmark_site_settings__';
 const DEFAULT_DETAIL_CARDS = [
   {title:'Visit or contact', description:'Add your shop address, phone number and opening hours.', linkText:'Your shop details', linkUrl:'#store-details'},
   {title:'Delivery & returns', description:'Add your delivery areas, shipping times and returns policy.', linkText:'Your customer policies', linkUrl:'#store-details'},
@@ -398,6 +400,26 @@ function renderDetailCardEditor() {
   const host=$('#site-detail-card-editor'); if(!host)return;
   host.innerHTML=(siteSettings.detailCards||[]).map((c,i)=>`<div class="site-detail-card-row" data-detail-card="${i}" data-detail-kind="${htmlSafe(c.kind||'')}"><div class="site-detail-card-row-head"><b>Card ${i+1}</b><button type="button" class="editor-reset" data-remove-detail-card="${i}">Remove</button></div><label>Card title<input data-detail-field="title" value="${htmlSafe(c.title||'')}"></label><label>Description<textarea data-detail-field="description" rows="2">${htmlSafe(c.description||'')}</textarea></label><div class="editor-two"><label>Link text<input data-detail-field="linkText" value="${htmlSafe(c.linkText||'')}"></label><label>Link URL<input data-detail-field="linkUrl" value="${htmlSafe(c.linkUrl||'')}"></label></div></div>`).join('');
 }
+function renderCategoryEditor() {
+  const host=$('#site-category-editor'); if(!host)return;
+  host.innerHTML=CATEGORIES.map(c=>{const cfg=siteSettings.categories?.[c.id]||{};return `
+    <div class="site-category-row" data-category-row="${htmlSafe(c.id)}">
+      <b>${htmlSafe(c.label)}</b>
+      <label>Category name<input data-cat-label="${htmlSafe(c.id)}" value="${htmlSafe(cfg.label||c.label)}"></label>
+      <label>Category image URL<input data-cat-photo="${htmlSafe(c.id)}" type="url" value="${htmlSafe(cfg.photo||CATEGORY_PHOTOS[c.id]||'')}" placeholder="https://..."></label>
+      <label>Upload / change image<input data-cat-image-file="${htmlSafe(c.id)}" type="file" accept="image/*"></label>
+      <button type="button" class="editor-reset" data-delete-category="${htmlSafe(c.id)}">Delete category</button>
+    </div>`;
+  }).join('');
+}
+function addCategoryEditorRow() {
+  const label=prompt('New category name:'); if(!label||!label.trim())return;
+  const id=label.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  if(!id||CATEGORIES.some(c=>c.id===id)){showToast('This category already exists.');return;}
+  CATEGORIES.push({id,label:label.trim(),icon:'icon-box'});
+  siteSettings.categories=siteSettings.categories||{};
+  renderCategoryEditor(); renderCategories();
+}
 function openSiteEditor() {
   if(!isAdmin){showToast('Admin login required');return;}
   $('#site-hero-title').value=siteSettings.heroTitle||defaultSiteSettings.heroTitle;
@@ -407,23 +429,29 @@ function openSiteEditor() {
   renderDetailCardEditor();
   const toggles=['categories','featured','build','catalog','details'];
   toggles.forEach(k=>$('#site-show-'+k).checked=siteSettings.sections?.[k]!==false);
-  $('#site-category-editor').innerHTML=CATEGORIES.map(c=>{const cfg=siteSettings.categories?.[c.id]||{};return `<div class="site-category-row"><b>${c.label}</b><label>Name<input data-cat-label="${c.id}" value="${(cfg.label||c.label).replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"></label><label>Image URL<input data-cat-photo="${c.id}" type="url" value="${(cfg.photo||CATEGORY_PHOTOS[c.id]||'').replace(/"/g,'&quot;')}"></label></div>`}).join('');
+  renderCategoryEditor();
   $('#site-editor-dialog').showModal();
 }
-function saveSiteEditor(e) {
+async function saveSiteEditor(e) {
   e.preventDefault();
   siteSettings={heroTitle:$('#site-hero-title').value.trim()||defaultSiteSettings.heroTitle,heroCopy:$('#site-hero-copy').value.trim(),heroImage:$('#site-hero-image').value.trim(),paymentUrl:$('#site-payment-url').value.trim(),blue:$('#site-blue').value,accent:$('#site-accent').value,pageBackground:$('#site-background').value,categories:{},detailCards:[],sections:{}};
-  $$('[data-cat-label]').forEach(input=>{const id=input.dataset.catLabel;siteSettings.categories[id]={label:input.value.trim()||id,photo:$(`[data-cat-photo="${id}"]`).value.trim()};});
+  for(const input of $('[data-cat-label]')){const id=input.dataset.catLabel;let photo=$(`[data-cat-photo="${id}"]`).value.trim();if(photo.startsWith('data:'))photo=await uploadProductImageIfNeeded(photo,'categories/'+id);siteSettings.categories[id]={label:input.value.trim()||id,photo};}
+  siteSettings.categoryList=CATEGORIES.map(c=>({...c}));
   $('#site-detail-card-editor').querySelectorAll('[data-detail-card]').forEach(row=>{const card={};row.querySelectorAll('[data-detail-field]').forEach(el=>card[el.dataset.detailField]=el.value.trim());if(row.dataset.detailKind)card.kind=row.dataset.detailKind;siteSettings.detailCards.push(card);});
   ['categories','featured','build','catalog','details'].forEach(k=>siteSettings.sections[k]=$('#site-show-'+k).checked);
   try { localStorage.setItem(SITE_KEY,JSON.stringify(siteSettings)); } catch { showToast('Could not save settings. Check browser storage.'); return; }
-  applySiteSettings(); closeDialog($('#site-editor-dialog')); showToast('Website changes saved in this browser');
+  try { await saveSiteSettingsToCloud(); } catch(error) { console.error(error); showToast(error.message||'Could not sync website settings.'); return; }
+  PRODUCTS=PRODUCTS.map(p=>({...p}));for(const p of PRODUCTS)await saveProductToCloud(p);saveProducts();
+  applySiteSettings(); closeDialog($('#site-editor-dialog')); showToast('Website and categories saved and synced to all devices');
 }
 
 function bindEvents() {
   document.addEventListener('click',event=>{const link=event.target.closest('[data-open-message]');if(!link)return;event.preventDefault();$('#customer-message-dialog').showModal();});
   $('#customer-message-form').addEventListener('submit',event=>{event.preventDefault();const f=new FormData(event.currentTarget);const msg={name:String(f.get('name')).trim(),contact:String(f.get('contact')).trim(),subject:String(f.get('subject')).trim(),message:String(f.get('message')).trim(),date:new Date().toISOString()};CUSTOMER_MESSAGES.unshift(msg);try{localStorage.setItem(MESSAGES_KEY,JSON.stringify(CUSTOMER_MESSAGES));}catch{showToast('Could not save message in this browser.');return;}event.currentTarget.reset();closeDialog($('#customer-message-dialog'));showToast('Your message was sent to the store inbox.');});
   $('#admin-dashboard-view').addEventListener('click',event=>{const b=event.target.closest('[data-delete-message]');if(!b)return;CUSTOMER_MESSAGES.splice(Number(b.dataset.deleteMessage),1);try{localStorage.setItem(MESSAGES_KEY,JSON.stringify(CUSTOMER_MESSAGES));}catch{}showAdminView('messages');});
+  $('#site-category-editor').addEventListener('click',event=>{const b=event.target.closest('[data-delete-category]');if(!b)return;const id=b.dataset.deleteCategory;if(CATEGORIES.length<=1){showToast('Keep at least one category.');return;}if(!confirm('Delete this category? Its products will be moved to Accessories (or the first remaining category).'))return;const fallback=CATEGORIES.find(c=>c.id==='accessories'&&c.id!==id)?.id||CATEGORIES.find(c=>c.id!==id)?.id;PRODUCTS=PRODUCTS.map(p=>p.category===id?{...p,category:fallback}:p);CATEGORIES=CATEGORIES.filter(c=>c.id!==id);if(siteSettings.categories)delete siteSettings.categories[id];renderCategoryEditor();renderCategories();});
+  $('#site-add-category').addEventListener('click',addCategoryEditorRow);
+  $('#site-category-editor').addEventListener('change',event=>{const input=event.target.closest('[data-cat-image-file]');if(!input||!input.files?.[0])return;const reader=new FileReader();reader.onload=()=>{const url=$(`[data-cat-photo="${input.dataset.catImageFile}"]`);if(url)url.value=String(reader.result);showToast('Image selected. Save website changes to upload it.');};reader.readAsDataURL(input.files[0]);});
   $('#site-add-detail-card').addEventListener('click',()=>{siteSettings.detailCards=[...(siteSettings.detailCards||[]),{title:'New card',description:'Add a short description for your customers.',linkText:'Learn more',linkUrl:'#store-details'}];renderDetailCardEditor();});
   $('#site-detail-card-editor').addEventListener('click',event=>{const btn=event.target.closest('[data-remove-detail-card]');if(!btn)return;const i=Number(btn.dataset.removeDetailCard);siteSettings.detailCards.splice(i,1);renderDetailCardEditor();});
   $('#header-search-form').addEventListener('submit', (event) => {
@@ -536,16 +564,20 @@ async function deleteProductFromCloud(id) {
   const { error } = await supabaseClient.from('products').delete().eq('id', id);
   if (error) throw error;
 }
+async function saveSiteSettingsToCloud(){if(!supabaseClient)throw new Error('Cloud service is unavailable.');const {error}=await supabaseClient.from('products').upsert({id:CLOUD_SITE_ROW_ID,data:{siteSettings,categoryList:CATEGORIES},updated_at:new Date().toISOString()},{onConflict:'id'});if(error)throw error;}
 async function loadCloudProducts() {
   if (!supabaseClient) { showToast('Cloud service did not load.'); return; }
   const { data, error } = await supabaseClient.from('products').select('id,data').order('updated_at', { ascending: true });
   if (error) { console.error('Supabase product load failed:', error); showToast('Could not load shared products.'); return; }
   if (data && data.length) {
-    PRODUCTS = data.map(row => row.data).filter(p => p && p.id);
+    const siteRow=data.find(row=>row.id===CLOUD_SITE_ROW_ID);
+    if(siteRow?.data?.siteSettings){siteSettings={...siteSettings,...siteRow.data.siteSettings};if(Array.isArray(siteRow.data.categoryList)&&siteRow.data.categoryList.length)CATEGORIES=siteRow.data.categoryList;try{localStorage.setItem(SITE_KEY,JSON.stringify(siteSettings));}catch{}}
+    PRODUCTS = data.filter(row=>row.id!==CLOUD_SITE_ROW_ID).map(row => row.data).filter(p => p && p.id);
     saveProducts();
   } else if (hasLocalProductCache && isAdmin) {
     // First-device migration: copy this browser's existing catalogue into the shared database.
     for (const product of PRODUCTS) await saveProductToCloud(product);
+    await saveSiteSettingsToCloud();
   }
   byId = new Map(PRODUCTS.map(p => [p.id,p]));
 }
